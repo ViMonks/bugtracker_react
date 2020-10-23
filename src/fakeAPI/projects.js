@@ -27,13 +27,25 @@ const projects = [
         id: 3,
         title: 'Project Title 3',
         description: 'Project Description 3',
-        created_on: new Date().toDateString(),
+        created_on: new Date(2020, 9, 15, 11).toDateString(),
         manager: 'Project Manager 2',
         is_archived: false,
         developers: [],
         team: 'Team 1',
         subscribers: [],
         open_tickets: 5,
+    },
+    {
+        id: 4,
+        title: 'Project Title 4',
+        description: 'Project Description 4',
+        created_on: new Date().toDateString(),
+        manager: 'Project Manager 2',
+        is_archived: true,
+        developers: [],
+        team: 'Team 1',
+        subscribers: [],
+        open_tickets: 6,
     }
 ]
 
