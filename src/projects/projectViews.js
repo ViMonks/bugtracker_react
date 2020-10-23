@@ -1,9 +1,43 @@
 import React, { useState, useEffect } from 'react';
+import { makeStyles } from "@material-ui/core/styles";
 import Button from "@material-ui/core/Button";
-import projects from "../fakeAPI/projects";
+import TextField from "@material-ui/core/TextField";
+import MenuItem from "@material-ui/core/MenuItem";
+
+// Material-UI tables
+import Table from '@material-ui/core/Table';
+import TableBody from '@material-ui/core/TableBody';
+import TableCell from '@material-ui/core/TableCell';
+import TableContainer from '@material-ui/core/TableContainer';
+import TableHead from '@material-ui/core/TableHead';
+import TableRow from '@material-ui/core/TableRow';
+import Paper from '@material-ui/core/Paper';
+
 
 export { ProjectDisplay }
 
+const useStyles = makeStyles((theme) => ({
+    inputs: {
+        '& > *': {
+            margin: theme.spacing(1),
+            width: '25ch',
+        },
+        '& button': {
+            width: 'auto',
+            'margin-top': '20px',
+        }
+    },
+    container: {
+        display: 'flex',
+        flexWrap: 'wrap',
+        // margin: theme.spacing(1),
+    },
+    containerSpaced: {
+        display: 'flex',
+        flexWrap: 'wrap',
+        margin: theme.spacing(1),
+    }
+}));
 
 function ProjectDisplay(props) {
     const [title, setTitle] = useState('');
@@ -53,13 +87,11 @@ function ProjectDisplay(props) {
                 startDate={startDate}
                 endDate={endDate}
                 manager={manager}
-                viewingArchived={viewingArchived}
                 uniqueManagers={uniqueManagers}
                 handleTitleChange={handleTitleChange}
                 handleManagerChange={handleManagerChange}
                 handleStartDateChange={handleStartDateChange}
                 handleEndDateChange={handleEndDateChange}
-                handleArchivedToggleClick={handleViewingArchivedToggle}
                 handleResetClick={handleResetClick}
             />
             <ProjectTable
@@ -70,44 +102,83 @@ function ProjectDisplay(props) {
                 manager={manager}
                 viewingArchived={viewingArchived}
             />
+            <ButtonsRow
+                viewingArchived={viewingArchived}
+                handleArchivedToggleClick={handleViewingArchivedToggle}
+            />
         </div>
     )
 }
 
 
 function ProjectFilter(props) {
+    const classes = useStyles();
+
     return (
-        <form>
-            <label>
-                Title
-                <input type="text" value={props.title} onChange={props.handleTitleChange}/>
-            </label>
-            <label>
-                Start Date
-                <input type="date" value={props.startDate} onChange={props.handleStartDateChange} />
-            </label>
-            <label>
-                End Date
-                <input type="date" value={props.endDate} onChange={props.handleEndDateChange} />
-            </label>
-            <label>
-                Manager
-                <select name="manager" id="manager" value={props.manager} onChange={props.handleManagerChange}>
-                    <option value=''></option>
+        <form className={classes.container}>
+            <div className={classes.inputs}>
+                <TextField id='title' label='Title' value={props.title} onChange={props.handleTitleChange} variant='filled' />
+                <TextField
+                    id="date"
+                    label="Start date"
+                    type="date"
+                    // defaultValue=""
+                    className={classes.textField}
+                    InputLabelProps={{
+                        shrink: true,
+                    }}
+                    value={props.startDate}
+                    onChange={props.handleStartDateChange}
+                    variant='filled'
+                />
+                <TextField
+                    id="date"
+                    label="End date"
+                    type="date"
+                    // defaultValue=""
+                    className={classes.textField}
+                    InputLabelProps={{
+                        shrink: true,
+                    }}
+                    value={props.endDate}
+                    onChange={props.handleEndDateChange}
+                    variant='filled'
+                />
+                <TextField
+                    id='manager'
+                    label='Manager'
+                    value={props.manager}
+                    onChange={props.handleManagerChange}
+                    select
+                    style={{width: '25ch'}}
+                    variant='filled'
+                >
+                    <MenuItem value=''></MenuItem>
                     {props.uniqueManagers.map((manager, index) => {
-                        return <option key={index} value={manager}>{manager}</option>
+                        return <MenuItem key={index} value={manager}>{manager}</MenuItem>
                     })}
-                </select>
-            </label>
-            <CreateNewProjectButton />
-            <ArchivedProjectsToggle viewingArchived={props.viewingArchived} handleClick={props.handleArchivedToggleClick} />
-            <Button color="primary" onClick={props.handleResetClick}>Reset</Button>
+                </TextField>
+                <Button color="primary" onClick={props.handleResetClick}>Reset</Button>
+            </div>
         </form>
     )
 }
 
 
+function ButtonsRow(props) {
+    const classes = useStyles();
+
+    return (
+        <div className={classes.containerSpaced}>
+            <CreateNewProjectButton />
+            <ArchivedProjectsToggle viewingArchived={props.viewingArchived} handleClick={props.handleArchivedToggleClick} />
+        </div>
+    )
+}
+
+
 function ProjectTable(props) {
+    const classes = useStyles()
     const projects = props.projects
     const filteredProjects = []
 
@@ -120,40 +191,40 @@ function ProjectTable(props) {
         const allFiltersMatch = titleMatch && isArchivedMatch && managerMatch && startDateMatch && endDateMatch
         if (allFiltersMatch) {
             filteredProjects.push(
-                <ProjectTableRow key={project.id} project={project} />
+                <ProjectTableRow key={project.id} project={project}/>
             )
         }
     })
-
     return (
-        <table>
-            <thead>
-                <tr>
-                    <th>Title</th>
-                    <th>Description</th>
-                    <th>Manager</th>
-                    <th>Open Tickets</th>
-                    <th>Created</th>
-                </tr>
-            </thead>
-            <tbody>
-            {filteredProjects}
-            </tbody>
-        </table>
+        <TableContainer component={Paper}>
+            <Table className={classes.table} aria-label='simple table'>
+                <TableHead>
+                    <TableRow>
+                        <TableCell>Title</TableCell>
+                        <TableCell>Description</TableCell>
+                        <TableCell>Manager</TableCell>
+                        <TableCell>Open Tickets</TableCell>
+                        <TableCell>Created</TableCell>
+                    </TableRow>
+                </TableHead>
+                <TableBody>
+                    {filteredProjects}
+                </TableBody>
+            </Table>
+        </TableContainer>
     )
 }
-
 
 function ProjectTableRow(props) {
     const project = props.project
     return (
-        <tr>
-            <td>{project.title}</td>
-            <td>{project.description}</td>
-            <td>{project.manager}</td>
-            <td>{project.open_tickets}</td>
-            <td>{project.created_on}</td>
-        </tr>
+        <TableRow>
+            <TableCell component='th' scope='row'>{project.title}</TableCell>
+            <TableCell>{project.description}</TableCell>
+            <TableCell>{project.manager}</TableCell>
+            <TableCell>{project.open_tickets}</TableCell>
+            <TableCell>{project.created_on}</TableCell>
+        </TableRow>
     )
 }
 
