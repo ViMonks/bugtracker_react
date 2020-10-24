@@ -1,0 +1,43 @@
+/*const useStyles = makeStyles((theme) => ({*/
+/*inputs: {*/
+/*'& > *': {*/
+/*           margin: theme.spacing(1),*/
+/*           width: '25ch',*/
+/*       },*/
+/*'& button': {*/
+/*              width: 'auto',*/
+/*          'margin-top': '20px',*/
+/*          }*/
+/*},*/
+/*container: {*/
+/*    display: 'flex',*/
+/*    flexWrap: 'wrap',*/
+/*    // margin: theme.spacing(1),*/
+/*},*/
+/*containerSpaced: {*/
+/*    display: 'flex',*/
+/*    flexWrap: 'wrap',*/
+/*    margin: theme.spacing(1),*/
+/*}*/
+/*}));*/
+
+.inputContainer {
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: flex-start;
+    margin: 10px;
+    gap: 10px;
+}
+
+@media all and (max-width: 800px) {
+    .inputContainer {
+        /*justify-content: space-evenly;*/
+        align-content: stretch;
+    }
+}
+
+@media all and (max-width: 500px) {
+    .inputContainer {
+        flex-direction: column;
+    }
+}

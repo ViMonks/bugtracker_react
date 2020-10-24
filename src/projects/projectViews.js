@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { makeStyles } from "@material-ui/core/styles";
+import React, { useState } from 'react';
 import Button from "@material-ui/core/Button";
 import TextField from "@material-ui/core/TextField";
 import MenuItem from "@material-ui/core/MenuItem";
@@ -13,33 +12,16 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
 
+// Internal imports
+import CreateProjectModalForm from "./createProject";
+
+// CSS Modules
+import styles from './ProjectTable.module.css'
 
 export { ProjectDisplay }
 
-const useStyles = makeStyles((theme) => ({
-    inputs: {
-        '& > *': {
-            margin: theme.spacing(1),
-            width: '25ch',
-        },
-        '& button': {
-            width: 'auto',
-            'margin-top': '20px',
-        }
-    },
-    container: {
-        display: 'flex',
-        flexWrap: 'wrap',
-        // margin: theme.spacing(1),
-    },
-    containerSpaced: {
-        display: 'flex',
-        flexWrap: 'wrap',
-        margin: theme.spacing(1),
-    }
-}));
-
 function ProjectDisplay(props) {
+    // State setup
     const [title, setTitle] = useState('');
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
@@ -49,10 +31,10 @@ function ProjectDisplay(props) {
     const managers = projects.map((project) => project.manager)
     const uniqueManagers = [...new Set(managers)]
 
+    // Ancestor functions setup
     const handleTitleChange = (e) => {
         setTitle(e.target.value)
     }
-
     const handleManagerChange = (e) => {
         setManager(e.target.value)
     }
@@ -60,25 +42,18 @@ function ProjectDisplay(props) {
     const handleStartDateChange = (e) => {
         setStartDate(e.target.value)
     }
-
     const handleEndDateChange = (e) => {
         setEndDate(e.target.value)
     }
-
     const handleViewingArchivedToggle = () => {
         setViewingArchived(!viewingArchived)
     }
-
     const handleResetClick = () => {
         setTitle('')
         setStartDate('')
         setEndDate('')
         setManager('')
     }
-
-    useEffect(() => {
-
-    })
 
     return (
         <div>
@@ -105,6 +80,7 @@ function ProjectDisplay(props) {
             <ButtonsRow
                 viewingArchived={viewingArchived}
                 handleArchivedToggleClick={handleViewingArchivedToggle}
+                uniqueManagers={uniqueManagers}
             />
         </div>
     )
@@ -112,18 +88,14 @@ function ProjectDisplay(props) {
 
 
 function ProjectFilter(props) {
-    const classes = useStyles();
-
     return (
-        <form className={classes.container}>
-            <div className={classes.inputs}>
+        <form>
+            <div className={styles.inputContainer}>
                 <TextField id='title' label='Title' value={props.title} onChange={props.handleTitleChange} variant='filled' />
                 <TextField
                     id="date"
                     label="Start date"
                     type="date"
-                    // defaultValue=""
-                    className={classes.textField}
                     InputLabelProps={{
                         shrink: true,
                     }}
@@ -135,8 +107,6 @@ function ProjectFilter(props) {
                     id="date"
                     label="End date"
                     type="date"
-                    // defaultValue=""
-                    className={classes.textField}
                     InputLabelProps={{
                         shrink: true,
                     }}
@@ -150,7 +120,7 @@ function ProjectFilter(props) {
                     value={props.manager}
                     onChange={props.handleManagerChange}
                     select
-                    style={{width: '25ch'}}
+                    style={{minWidth: '25ch'}}
                     variant='filled'
                 >
                     <MenuItem value=''></MenuItem>
@@ -166,11 +136,9 @@ function ProjectFilter(props) {
 
 
 function ButtonsRow(props) {
-    const classes = useStyles();
-
     return (
-        <div className={classes.containerSpaced}>
-            <CreateNewProjectButton />
+        <div className={styles.inputContainer}>
+            <CreateProjectModalForm uniqueManagers={props.uniqueManagers} />
             <ArchivedProjectsToggle viewingArchived={props.viewingArchived} handleClick={props.handleArchivedToggleClick} />
         </div>
     )
@@ -178,16 +146,17 @@ function ButtonsRow(props) {
 
 
 function ProjectTable(props) {
-    const classes = useStyles()
     const projects = props.projects
     const filteredProjects = []
 
     projects.forEach((project) => {
+        // Creating a boolean for each filter input
         const titleMatch = project.title.toLowerCase().indexOf(props.title.toLowerCase()) !== -1
         const isArchivedMatch = project.is_archived === props.viewingArchived
         const managerMatch = project.manager.toLowerCase() === props.manager.toLowerCase() || props.manager === ''
         const startDateMatch = new Date(project.created_on) >= new Date(props.startDate) || props.startDate === ''
         const endDateMatch = new Date(project.created_on) <= new Date(`${props.endDate} 11:59:59 PM`) || props.endDate === ''
+        // Creating a boolean that aggregates each individual filter input, then returns a table row for each item that matches the aggregate
         const allFiltersMatch = titleMatch && isArchivedMatch && managerMatch && startDateMatch && endDateMatch
         if (allFiltersMatch) {
             filteredProjects.push(
@@ -197,7 +166,7 @@ function ProjectTable(props) {
     })
     return (
         <TableContainer component={Paper}>
-            <Table className={classes.table} aria-label='simple table'>
+            <Table aria-label='simple table'>
                 <TableHead>
                     <TableRow>
                         <TableCell>Title</TableCell>
@@ -225,15 +194,6 @@ function ProjectTableRow(props) {
             <TableCell>{project.open_tickets}</TableCell>
             <TableCell>{project.created_on}</TableCell>
         </TableRow>
-    )
-}
-
-
-function CreateNewProjectButton() {
-    return (
-        <Button variant="contained" color="primary">
-            Create New Project
-        </Button>
     )
 }
 
