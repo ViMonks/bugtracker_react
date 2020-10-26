@@ -3,6 +3,16 @@ import Button from "@material-ui/core/Button";
 import TextField from "@material-ui/core/TextField";
 import MenuItem from "@material-ui/core/MenuItem";
 
+// React Router Imports
+import {
+    BrowserRouter as Router,
+    Switch,
+    Route,
+    Link,
+    useParams,
+    useRouteMatch
+} from "react-router-dom";
+
 // Material-UI tables
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
@@ -166,7 +176,7 @@ function ProjectTable(props) {
     })
     return (
         <TableContainer component={Paper}>
-            <Table aria-label='simple table'>
+            <Table aria-label='table of projects'>
                 <TableHead>
                     <TableRow>
                         <TableCell>Title</TableCell>
@@ -188,7 +198,9 @@ function ProjectTableRow(props) {
     const project = props.project
     return (
         <TableRow>
-            <TableCell component='th' scope='row'>{project.title}</TableCell>
+            <TableCell component='th' scope='row'>
+                <Link to={`/projects/${project.id}`}>{project.title}</Link>
+            </TableCell>
             <TableCell>{project.description}</TableCell>
             <TableCell>{project.manager}</TableCell>
             <TableCell>{project.open_tickets}</TableCell>

@@ -1,0 +1,27 @@
+.projectDetailsPage {
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: flex-start;
+    margin: 10px;
+    gap: 10px;
+}
+
+.ticketsPane {
+    flex-grow: 2;
+    display: flex;
+    flex-flow: column wrap;
+    gap: 10px;
+}
+
+.ticketsPaneHeader {
+    gap: 0;
+    margin: 0;
+}
+
+.ticketPaneInput {
+    display: flex;
+}
+
+.detailsPane {
+    flex-grow: 1;
+}

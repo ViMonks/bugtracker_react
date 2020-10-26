@@ -1,10 +1,20 @@
 import React from 'react';
 import logo from './logo.svg';
-// import './App.css';
-// import './primitive.css'
+
+// React Router Imports
+import {
+    BrowserRouter as Router,
+    Switch,
+    Route,
+    Link,
+    useParams,
+    useRouteMatch
+} from "react-router-dom";
 
 import projects from "./fakeAPI/projects";
-import { ProjectDisplay } from './projects/projectViews'
+import tickets from "./fakeAPI/tickets";
+import { ProjectDisplay } from './projects/projectViews';
+import { ProjectDetailsPage } from "./projects/projectDetails";
 
 function App() {
   return (
@@ -25,7 +35,16 @@ function App() {
       {/*</header>*/}
       <h3>Bugtracker</h3>
         <div>
-            <ProjectDisplay projects={projects}/>
+            <Router>
+                <Switch>
+                    <Route exact path='/'>
+                        <ProjectDisplay projects={projects}/>
+                    </Route>
+                    <Route path='/projects/:projectId'>
+                        <ProjectDetailsPage allProjects={projects} allTickets={tickets} />
+                    </Route>
+                </Switch>
+            </Router>
         </div>
     </div>
   );
