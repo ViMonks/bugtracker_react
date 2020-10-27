@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
+import Select from '@material-ui/core/Select';
+import InputLabel from "@material-ui/core/InputLabel";
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
@@ -12,18 +14,20 @@ import Tooltip from "@material-ui/core/Tooltip";
 import { ToastMessage } from '../utils/toast_messages'
 
 
-export default function CreateProjectModalForm(props) {
-    const existingProject = props.existingProject
-    const titleValue = existingProject ? existingProject.title : ''
-    const descriptionValue = existingProject ? existingProject.description : ''
-    const managerValue = existingProject ? existingProject.manager : ''
+export default function CreateTicketModalForm(props) {
+    const existingTicket = props.existingTicket
+    const titleValue = existingTicket ? existingTicket.title : ''
+    const descriptionValue = existingTicket ? existingTicket.description : ''
+    const developersValue = existingTicket ? existingTicket.developers : []
+    const priorityValue = existingTicket ? existingTicket.priority : 'Medium'
     const [open, setOpen] = useState(false);
     const [title, setTitle] = useState(titleValue)
     const [description, setDescription] = useState(descriptionValue)
-    const [manager, setManager] = useState(managerValue)
+    const [developers, setDevelopers] = useState(developersValue)
+    const [priority, setPriority] = useState(priorityValue)
     const [success, setSuccess] = useState(false)
 
-    const toastMessageText = existingProject ? 'Project updated!' : 'Project created!'
+    const toastMessageText = existingTicket ? 'Ticket updated!' : 'Ticket created!'
 
     const handleSuccessToastClose = () => {
         setSuccess(false)
@@ -33,7 +37,7 @@ export default function CreateProjectModalForm(props) {
         setOpen(true);
         setTitle(titleValue)
         setDescription(descriptionValue)
-        setManager(managerValue)
+        setDevelopers(developersValue)
     };
 
     const handleClose = () => {
@@ -41,26 +45,30 @@ export default function CreateProjectModalForm(props) {
     };
 
     const handleSubmit = () => {
-        const newProject = {
+        const newTicket = {
             title: title,
             description: description,
-            manager: manager,
+            developers: developers,
+            priority: priority,
         }
-        console.log(newProject)
+        console.log(newTicket)
         setOpen(false)
         setSuccess(true)
     };
-    const submitButtonText = existingProject ? 'Update' : 'Create'
     const handleTitleChange = (e) => {
         setTitle(e.target.value)
     };
     const handleDescriptionChange = (e) => {
         setDescription(e.target.value)
     };
-    const handleManagerChange = (e) => {
-        setManager(e.target.value)
+    const handleDevelopersChange = (e) => {
+        setDevelopers(e.target.value)
     };
-    const messageText = existingProject ? 'Update the current project.' : 'Create a new project for the current team.'
+    const handlePriorityChange = (e) => {
+        setPriority(e.target.value)
+    };
+    const prioritiesList = ['Low', 'Medium', 'High', 'Urgent']
+    const messageText = existingTicket ? 'Update the current ticket.' : 'Submit a new ticket to the current project.'
 
     return (
         <div>
@@ -94,16 +102,32 @@ export default function CreateProjectModalForm(props) {
                         onChange={handleDescriptionChange}
                         value={description}
                     />
+                    <InputLabel id='developers-label'>Developers</InputLabel>
+                    <Select
+                        id='developers'
+                        labelId='developers-label'
+                        label='Developers'
+                        select
+                        multiple
+                        fullWidth
+                        onChange={handleDevelopersChange}
+                        value={developers}
+                    >
+                        <MenuItem value={developers}> </MenuItem>
+                        {props.uniqueDevelopers.map((developer, index) => {
+                            return <MenuItem key={index} value={developer}>{developer}</MenuItem>
+                        })}
+                    </Select>
                     <TextField
-                        id='manager'
-                        label='Manager'
+                        id='priority'
+                        label='Priority'
                         select
                         fullWidth
-                        onChange={handleManagerChange}
-                        value={manager}
+                        onChange={handlePriorityChange}
+                        value={priority}
                     >
-                        {props.uniqueManagers.map((manager, index) => {
-                            return <MenuItem key={index} value={manager}>{manager}</MenuItem>
+                        {prioritiesList.map((priority, index) => {
+                            return <MenuItem key={index} value={priority}>{priority}</MenuItem>
                         })}
                     </TextField>
                 </DialogContent>
@@ -111,7 +135,7 @@ export default function CreateProjectModalForm(props) {
                     <Button onClick={handleClose} color="primary">
                         Cancel
                     </Button>
-                    <SubmitButton title={title} description={description} manager={manager} handleSubmit={handleSubmit} submitButtonText={submitButtonText} />
+                    <SubmitButton title={title} description={description} developers={developers} handleSubmit={handleSubmit} />
                 </DialogActions>
             </Dialog>
             <ToastMessage message={toastMessageText} trigger={success} onClose={handleSuccessToastClose} />
@@ -120,14 +144,14 @@ export default function CreateProjectModalForm(props) {
 }
 
 function SubmitButton(props) {
-    const anyFieldIsEmpty = !(props.title && props.description && props.manager)
+    const titleIsEmpty = !(props.title)
     const handleSubmit = props.handleSubmit
-    if (anyFieldIsEmpty) {
+    if (titleIsEmpty) {
         return (
-            <Tooltip title='All fields are required.'>
+            <Tooltip title='A title is required.'>
                  <span>
                     <Button color="primary" disabled>
-                        {props.submitButtonText}
+                        Create
                     </Button>
                  </span>
             </Tooltip>
@@ -135,7 +159,7 @@ function SubmitButton(props) {
     } else {
         return (
             <Button onClick={handleSubmit} color="primary">
-                {props.submitButtonText}
+                Create
             </Button>
         )
     }

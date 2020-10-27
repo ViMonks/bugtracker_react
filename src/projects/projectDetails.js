@@ -3,14 +3,7 @@ import Button from "@material-ui/core/Button";
 import TextField from "@material-ui/core/TextField";
 
 // React Router imports
-import {
-    BrowserRouter as Router,
-    Switch,
-    Route,
-    Link,
-    useParams,
-    useRouteMatch
-} from "react-router-dom";
+import { useParams } from "react-router-dom";
 
 // Material-UI tables
 import Table from '@material-ui/core/Table';
@@ -23,18 +16,24 @@ import Paper from '@material-ui/core/Paper';
 
 // Internal imports
 import CreateProjectModalForm from "./createProject";
+import CreateTicketModalForm from "../tickets/createTicket";
+import teams from "../fakeAPI/teams";
 
 // CSS Modules
 import styles from './ProjectDetailsPane.module.css'
 
 export { ProjectDetailsPage }
 
+const team = teams[0]
+
 // Main output
 function ProjectDetailsPage(props) {
     let { projectId } = useParams();
     const allProjects = props.allProjects
     const project = allProjects.find((project) => project.id.toString() === projectId)
+    /* TODO: the above pattern is probably not great; will revisit when the API is wired up */
     const allTickets = props.allTickets
+    const uniqueDevelopers = team.members
 
     // State setup
     const [isArchived, setIsArchived] = useState(project.is_archived)
@@ -75,6 +74,7 @@ function ProjectDetailsPage(props) {
                 handleTitleClear={handleTitleClear}
                 titleFilter={titleFilter}
                 tickets={projectTickets}
+                uniqueDevelopers={uniqueDevelopers}
             />
         </div>
     )
@@ -90,7 +90,7 @@ function DetailsPane(props) {
     return (
         <div className={styles.detailsPane}>
             <Details project={project} />
-            <DetailsInput isArchived={isArchived} handleArchivedToggle={handleArchivedToggle} />
+            <DetailsInput isArchived={isArchived} handleArchivedToggle={handleArchivedToggle} project={project} />
         </div>
     )
 }
@@ -99,13 +99,15 @@ function DetailsPane(props) {
 function DetailsInput(props) {
     const isArchived = props.isArchived
     const handleArchivedToggle = props.handleArchivedToggle
+    const project = props.project
     return (
         <div>
-            {/* TODO: Add an update project button */}
+            <CreateProjectModalForm uniqueManagers={team.managers} existingProject={project} text='Update Project' />
+            {/* TODO: Add a manage developers link */}
             <Button color='primary' onClick={handleArchivedToggle}>
                 {isArchived ? 'Reopen project' : 'Archive project'}
             </Button>
-            <p>Subscribe to project LINK</p>
+            <p>Subscribe to project LINK</p> {/* TODO: add subscribe to project link */}
         </div>
     )
 }
@@ -164,7 +166,7 @@ function TicketsPane(props) {
             <h3 className={styles.ticketsPaneHeader}>{header}</h3>
             <TicketFilter handleTitleChange={handleTitleChange} handleTitleClear={handleTitleClear} titleFilter={titleFilter} />
             <TicketTable titleFilter={titleFilter} tickets={tickets} viewingClosedTickets={viewingClosedTickets} updateTicketCount={updateTicketCount} />
-            <ButtonsRow handleTicketStatusToggle={handleTicketStatusToggle} viewingClosedTickets={viewingClosedTickets} />
+            <ButtonsRow handleTicketStatusToggle={handleTicketStatusToggle} viewingClosedTickets={viewingClosedTickets} uniqueDevelopers={props.uniqueDevelopers} />
         </div>
     )
 }
@@ -174,8 +176,8 @@ function ButtonsRow(props) {
     const handleTicketStatusToggle = props.handleTicketStatusToggle
     const ticketStatusViewToggle = props.viewingClosedTickets ? 'View open tickets' : 'View closed tickets'
     return (
-        <div>
-            {/*<CreateTicketModalForm />*/}
+        <div style={{display: 'flex'}}>
+            <CreateTicketModalForm text='Submit ticket' uniqueDevelopers={props.uniqueDevelopers}/>
             <Button color='primary' onClick={handleTicketStatusToggle}>{ticketStatusViewToggle}</Button>
         </div>
     )
@@ -231,7 +233,7 @@ function TicketTable(props) {
                     <TableRow>
                         <TableCell>Title</TableCell>
                         <TableCell>User</TableCell>
-                        <TableCell>Developer</TableCell>
+                        <TableCell>Developers</TableCell>
                         <TableCell>Priority</TableCell>
                         <TableCell>Created</TableCell>
                         <TableCell>Updated</TableCell>
@@ -248,11 +250,12 @@ function TicketTable(props) {
 
 function TicketTableRow(props) {
     const ticket = props.ticket
+    const developers = ticket.developers ? ticket.developers.join(", ") : null
     return (
         <TableRow>
             <TableCell component='th' scope='row'>{ticket.title}</TableCell>
             <TableCell>{ticket.user}</TableCell>
-            <TableCell>{ticket.developer}</TableCell>
+            <TableCell>{developers}</TableCell>
             <TableCell>{ticket.priority}</TableCell>
             <TableCell>{ticket.created_on}</TableCell>
             <TableCell>{ticket.updated_on}</TableCell>

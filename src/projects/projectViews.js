@@ -24,6 +24,7 @@ import Paper from '@material-ui/core/Paper';
 
 // Internal imports
 import CreateProjectModalForm from "./createProject";
+import teams from "../fakeAPI/teams";
 
 // CSS Modules
 import styles from './ProjectTable.module.css'
@@ -38,8 +39,9 @@ function ProjectDisplay(props) {
     const [manager, setManager] = useState('');
     const [viewingArchived, setViewingArchived] = useState(false);
     const projects = props.projects
-    const managers = projects.map((project) => project.manager)
-    const uniqueManagers = [...new Set(managers)]
+    // const managers = projects.map((project) => project.manager)
+    // const uniqueManagers = [...new Set(managers)]
+    const uniqueManagers = teams[0].managers
 
     // Ancestor functions setup
     const handleTitleChange = (e) => {
@@ -148,7 +150,7 @@ function ProjectFilter(props) {
 function ButtonsRow(props) {
     return (
         <div className={styles.inputContainer}>
-            <CreateProjectModalForm uniqueManagers={props.uniqueManagers} />
+            <CreateProjectModalForm uniqueManagers={props.uniqueManagers} text='Create new project' />
             <ArchivedProjectsToggle viewingArchived={props.viewingArchived} handleClick={props.handleArchivedToggleClick} />
         </div>
     )
