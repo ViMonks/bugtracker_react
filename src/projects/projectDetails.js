@@ -3,7 +3,7 @@ import Button from "@material-ui/core/Button";
 import TextField from "@material-ui/core/TextField";
 
 // React Router imports
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 
 // Material-UI tables
 import Table from '@material-ui/core/Table';
@@ -253,7 +253,9 @@ function TicketTableRow(props) {
     const developers = ticket.developers ? ticket.developers.join(", ") : null
     return (
         <TableRow>
-            <TableCell component='th' scope='row'>{ticket.title}</TableCell>
+            <TableCell component='th' scope='row'>
+                <Link to={`/tickets/${ticket.id}`}>{ticket.title}</Link>
+            </TableCell>
             <TableCell>{ticket.user}</TableCell>
             <TableCell>{developers}</TableCell>
             <TableCell>{ticket.priority}</TableCell>

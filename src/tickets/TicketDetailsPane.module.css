@@ -1,0 +1,27 @@
+.ticketDetailsPage {
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: flex-start;
+    margin: 10px;
+    gap: 10px;
+}
+
+.ticketPane {
+    /*flex-grow: 1;*/
+    display: flex;
+    flex-flow: column wrap;
+    gap: 10px;
+}
+
+/*.ticketsPaneHeader {*/
+/*    gap: 0;*/
+/*    margin: 0;*/
+/*}*/
+
+.ticketPaneInput {
+    display: flex;
+}
+
+.commentsPane {
+    /*flex-grow: 1;*/
+}

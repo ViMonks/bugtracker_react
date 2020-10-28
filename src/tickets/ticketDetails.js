@@ -13,13 +13,17 @@ import TableContainer from '@material-ui/core/TableContainer';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
+import List from "@material-ui/core/List";
+import ListItem from "@material-ui/core/ListItem";
+import ListItemText from "@material-ui/core/ListItemText";
 
 // Internal imports
-import CreateTicketModalForm from "../tickets/createTicket";
+import CreateTicketModalForm from "./createTicket";
 import teams from "../fakeAPI/teams";
+import commentsAPI from "../fakeAPI/comments";
 
 // CSS Modules
-import styles from './ProjectDetailsPane.module.css'
+import styles from './TicketDetailsPane.module.css'
 
 export { TicketDetailsPage }
 
@@ -32,7 +36,22 @@ function TicketDetailsPage(props) {
     const ticket = allTickets.find((ticket) => ticket.id.toString() === ticketId)
     /* TODO: the above pattern is probably not great; will revisit when the API is wired up */
     // get comments here or in Comment Pane?
-
+    const commentsList = commentsAPI.filter(comment => comment.ticket_id.toString() === ticketId).sort(function(a, b) {
+        if (new Date(a.created_on) > new Date(b.created_on)) {
+            return -1
+        } else if (new Date(a.created_on) < new Date(b.created_on)) {
+            return 1
+        } else {
+            return 0
+        }
+    })
+    const [comments, setComments] = useState(commentsList)
+    return (
+        <div className={styles.ticketDetailsPage}>
+            <TicketPane ticket={ticket}/>
+            <CommentPane comments={comments} />
+        </div>
+    )
 
 }
 
@@ -40,20 +59,24 @@ function TicketDetailsPage(props) {
 
 // Comment Pane
 function CommentPane(props) {
-    const ticket = props.ticket
-    const comments = '' // this will be retrieved from the API by ticket; ultimately, will need to be state so it can be updated
+    // const ticket = props.ticket
+    const comments = props.comments // this will be retrieved from the API by ticket; ultimately, will need to be state so it can be updated
 
     // State
     const [commentText, setCommentText] = useState('')
     const handleCommentInputChange = (e) => {
         setCommentText(e.target.value)
     }
+    const handleCommentSubmit = () => {
+        console.log(commentText)
+        setCommentText('')
+    }
 
     return (
-        <div>
+        <div className={styles.commentsPane}>
             <h3>Comments</h3>
             <CommentList comments={comments} />
-            <CommentInput commentText={commentText} handleCommentInputChange={handleCommentInputChange} />
+            <CommentInput commentText={commentText} handleCommentInputChange={handleCommentInputChange} handleCommentSubmit={handleCommentSubmit}/>
         </div>
     )
 }
@@ -62,36 +85,42 @@ function CommentPane(props) {
 function CommentInput(props) {
     const handleCommentInputChange = props.handleCommentInputChange
     const commentText = props.commentText
+    const handleCommentSubmit = props.handleCommentSubmit
     return (
-        <TextField
-            margin='dense'
-            label='comment-text'
-            type='text'
-            multiline
-            rowsMax={10}
-            fullWidth
-            onChange={handleCommentInputChange}
-            value={commentText}
-        />
+        <div className={styles.ticketPaneInput}>
+            <TextField
+                margin='dense'
+                label='Post new comment'
+                type='text'
+                multiline
+                rowsMax={10}
+                fullWidth
+                onChange={handleCommentInputChange}
+                value={commentText}
+            />
+            <Button onClick={handleCommentSubmit} style={{marginTop: '20px'}}>Post</Button>
+        </div>
     )
 }
 
 
 function CommentList(props) {
-    {/* TODO: add comment delete button */}
+    // TODO: add comment delete button
     const comments = props.comments
     const commentElements = comments.map((comment) => {
         return (
-            <li key={comment.id}>
-                <p>{`${comment.text}`}</p>
-                <p><em>{`${comment.user} on ${comment.created_on}`}</em></p>
-            </li>
+            <ListItem key={comment.id} divider>
+                <ListItemText
+                    primary={comment.text}
+                    secondary={`${comment.user} on ${comment.created_on.toDateString()}`}
+                />
+            </ListItem>
         )
     })
     return (
-        <ul>
+        <List>
             {commentElements}
-        </ul>
+        </List>
     )
 }
 
@@ -109,7 +138,7 @@ function TicketPane(props) {
     }
 
     return (
-        <div>
+        <div className={styles.ticketPane}>
             <TicketInfo ticket={ticket} />
             <TicketInput ticket={ticket} handleTicketStatusToggle={handleTicketStatusToggle} />
             {/* TODO: add subscribe/unsubscribe button */}
@@ -137,7 +166,7 @@ function TicketInput(props) {
     const handleTicketStatusToggle = props.handleTicketStatusToggle
     const ticketStatusToggleText = ticket.status === 'closed' ? 'Reopen ticket' : 'Close ticket'
     return (
-        <div>
+        <div className={styles.ticketPaneInput}>
             <CreateTicketModalForm existingTicket={ticket} uniqueDevelopers={team.members} text='Update ticket' />
             <Button onClick={handleTicketStatusToggle}>{ticketStatusToggleText}</Button>
         </div>

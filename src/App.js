@@ -15,6 +15,7 @@ import projects from "./fakeAPI/projects";
 import tickets from "./fakeAPI/tickets";
 import { ProjectDisplay } from './projects/projectViews';
 import { ProjectDetailsPage } from "./projects/projectDetails";
+import { TicketDetailsPage } from "./tickets/ticketDetails";
 
 function App() {
   return (
@@ -39,6 +40,9 @@ function App() {
                 <Switch>
                     <Route exact path='/'>
                         <ProjectDisplay projects={projects}/>
+                    </Route>
+                    <Route path='/tickets/:ticketId'>
+                        <TicketDetailsPage allTickets={tickets} />
                     </Route>
                     <Route path='/projects/:projectId'>
                         <ProjectDetailsPage allProjects={projects} allTickets={tickets} />
