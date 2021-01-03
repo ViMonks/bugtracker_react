@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import Button from "@material-ui/core/Button";
 import TextField from "@material-ui/core/TextField";
 import MenuItem from "@material-ui/core/MenuItem";
+
+import getProjects from "../api_access/getProjects";
 
 // React Router Imports
 import {
@@ -12,6 +14,14 @@ import {
     useParams,
     useRouteMatch
 } from "react-router-dom";
+
+// ReactQuery imports
+import { QueryClient, QueryClientProvider, useQuery } from "react-query";
+
+// Axios imports
+import axios from "axios";
+import { axiosHeaders, myHeaders } from "../api_access/getProjects";
+// const axios = require('axios').default;
 
 // Material-UI tables
 import Table from '@material-ui/core/Table';
@@ -25,6 +35,7 @@ import Paper from '@material-ui/core/Paper';
 // Internal imports
 import CreateProjectModalForm from "./createProject";
 import teams from "../fakeAPI/teams";
+// import myHeaders from "../api_access/getProjects";
 
 // CSS Modules
 import styles from './ProjectTable.module.css'
@@ -81,14 +92,15 @@ function ProjectDisplay(props) {
                 handleEndDateChange={handleEndDateChange}
                 handleResetClick={handleResetClick}
             />
-            <ProjectTable
-                projects={projects}
-                title={title}
-                startDate={startDate}
-                endDate={endDate}
-                manager={manager}
-                viewingArchived={viewingArchived}
-            />
+            {/*<ProjectTable*/}
+            {/*    projects={projects}*/}
+            {/*    title={title}*/}
+            {/*    startDate={startDate}*/}
+            {/*    endDate={endDate}*/}
+            {/*    manager={manager}*/}
+            {/*    viewingArchived={viewingArchived}*/}
+            {/*/>*/}
+            <ProjectTableWrapper />
             <ButtonsRow
                 viewingArchived={viewingArchived}
                 handleArchivedToggleClick={handleViewingArchivedToggle}
@@ -156,48 +168,168 @@ function ButtonsRow(props) {
     )
 }
 
+// ReactQuery project table
+const queryClient = new QueryClient();
+function ProjectTableWrapper() {
+    return (
+        <QueryClientProvider client={queryClient}>
+            <ProjectTableReactQuery />
+        </QueryClientProvider>
+    )
+}
+
+function ProjectTableReactQuery() {
+    const { isLoading, error, data } = useQuery('projectData', () =>
+        axios.get("http://localhost:8000/api/teams/monks-test-team/projects/", {headers: axiosHeaders})
+            .catch(err => {
+                if (err.response) {
+                    throw new Error(err.response.data['errors'] || err.response.data['detail'] || err.response.data['error'])
+                } else {
+                    throw new Error(err)
+                }
+            })
+    )
+
+    if (isLoading) return "Loading, yo..."
+
+    if (error) {
+        console.log('Something went wrong: '+error.message)
+        return `Whoopsie: ${error.message}`
+    }
+
+    console.log(data.data)
+    return 'We did it!'
+}
+
 
 function ProjectTable(props) {
-    const projects = props.projects
-    const filteredProjects = []
+    // const projects = props.projects
+    // const filteredProjects = []
 
-    projects.forEach((project) => {
-        // Creating a boolean for each filter input
-        const titleMatch = project.title.toLowerCase().indexOf(props.title.toLowerCase()) !== -1
-        const isArchivedMatch = project.is_archived === props.viewingArchived
-        const managerMatch = project.manager.toLowerCase() === props.manager.toLowerCase() || props.manager === ''
-        const startDateMatch = new Date(project.created_on) >= new Date(props.startDate) || props.startDate === ''
-        const endDateMatch = new Date(project.created_on) <= new Date(`${props.endDate} 11:59:59 PM`) || props.endDate === ''
-        // Creating a boolean that aggregates each individual filter input, then returns a table row for each item that matches the aggregate
-        const allFiltersMatch = titleMatch && isArchivedMatch && managerMatch && startDateMatch && endDateMatch
-        if (allFiltersMatch) {
-            filteredProjects.push(
-                <ProjectTableRow key={project.id} project={project}/>
-            )
+    const [projects, setProjects] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState(false);
+    const [errorText, setErrorText] = useState('');
+
+    // useEffect(() => {
+    //     fetch("http://localhost:8000/api/teams/monks-test-team/projects/", {headers: myHeaders})
+    //         .then(res => {
+    //             if (!res.ok) {
+    //                 setError(true)
+    //                 throw new Error(`Invalid response. HTTP status: ${res.status}`)
+    //             }
+    //             res.json()
+    //         })
+    //         .then(
+    //             (res) => {
+    //                 if (error) {
+    //                     console.log('err')
+    //                     setError(res['detail'])
+    //                     setIsLoading(false)
+    //                 } else {
+    //                     console.log('no err')
+    //                     setProjects(res);
+    //                     setIsLoading(false);
+    //                 }
+    //             },
+    //             // Note: it's important to handle errors here
+    //             // instead of a catch() block so that we don't swallow
+    //             // exceptions from actual bugs in components.
+    //             (error) => {
+    //                 console.log(error.message)
+    //                 setError(error.message)
+    //                 setIsLoading(false);
+    //             }
+    //         )
+    // }, [])
+
+    useEffect(() => {
+        async function fetchData() {
+            const response = await fetch("http://localhost:8000/api/teams/monks-test-team/projects/", {headers: myHeaders})
+            if (!response.ok) {
+                setError(true)
+            }
+            const json = await response.json()
+            if (error) {
+                console.log('err')
+                setErrorText(json.detail)
+                setIsLoading(false)
+            } else {
+                console.log('no err')
+                setProjects(json)
+                const filteredProjects = []
+                projects.forEach((project) => {
+                    // Creating a boolean for each filter input
+                    const titleMatch = project.title.toLowerCase().indexOf(props.title.toLowerCase()) !== -1
+                    const isArchivedMatch = project.is_archived === props.viewingArchived
+                    const manager = project.manager !== null ? project.manager.toLowerCase() : ''
+                    const managerMatch = manager === props.manager.toLowerCase() || props.manager === ''
+                    const startDateMatch = new Date(project.created) >= new Date(props.startDate) || props.startDate === ''
+                    const endDateMatch = new Date(project.created) <= new Date(`${props.endDate} 11:59:59 PM`) || props.endDate === ''
+                    // Creating a boolean that aggregates each individual filter input, then returns a table row for each item that matches the aggregate
+                    const allFiltersMatch = titleMatch && isArchivedMatch && startDateMatch && endDateMatch && managerMatch
+                    if (allFiltersMatch) {
+                        filteredProjects.push(
+                            <ProjectTableRow key={project.id} project={project}/>
+                        )
+                    }
+                })
+                setProjects(filteredProjects)
+                setIsLoading(false)
+            }
         }
-    })
-    return (
-        <TableContainer component={Paper}>
-            <Table aria-label='table of projects'>
-                <TableHead>
-                    <TableRow>
-                        <TableCell>Title</TableCell>
-                        <TableCell>Description</TableCell>
-                        <TableCell>Manager</TableCell>
-                        <TableCell>Open Tickets</TableCell>
-                        <TableCell>Created</TableCell>
-                    </TableRow>
-                </TableHead>
-                <TableBody>
-                    {filteredProjects}
-                </TableBody>
-            </Table>
-        </TableContainer>
-    )
+        fetchData();
+    }, [])
+
+    // projects.forEach((project) => {
+    //     // Creating a boolean for each filter input
+    //     const titleMatch = project.title.toLowerCase().indexOf(props.title.toLowerCase()) !== -1
+    //     const isArchivedMatch = project.is_archived === props.viewingArchived
+    //     const manager = project.manager !== null ? project.manager.toLowerCase() : ''
+    //     const managerMatch = manager === props.manager.toLowerCase() || props.manager === ''
+    //     const startDateMatch = new Date(project.created) >= new Date(props.startDate) || props.startDate === ''
+    //     const endDateMatch = new Date(project.created) <= new Date(`${props.endDate} 11:59:59 PM`) || props.endDate === ''
+    //     // Creating a boolean that aggregates each individual filter input, then returns a table row for each item that matches the aggregate
+    //     const allFiltersMatch = titleMatch && isArchivedMatch && startDateMatch && endDateMatch && managerMatch
+    //     if (allFiltersMatch) {
+    //         filteredProjects.push(
+    //             <ProjectTableRow key={project.id} project={project}/>
+    //         )
+    //     }
+    // })
+
+
+    if (isLoading) {
+        return <div><h1>Loading...</h1></div>
+    } else if (error) {
+        return <div><h1>Error: {errorText}</h1></div>
+    } else {
+        return (
+            <TableContainer component={Paper}>
+                <Table aria-label='table of projects'>
+                    <TableHead>
+                        <TableRow>
+                            <TableCell>Title</TableCell>
+                            <TableCell>Description</TableCell>
+                            <TableCell>Manager</TableCell>
+                            <TableCell>Open Tickets</TableCell>
+                            <TableCell>Created</TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {projects}
+                    </TableBody>
+                </Table>
+            </TableContainer>
+        )
+    }
 }
 
 function ProjectTableRow(props) {
     const project = props.project
+
+    const date = new Date(project.created).toLocaleDateString()
+
     return (
         <TableRow>
             <TableCell component='th' scope='row'>
@@ -206,7 +338,7 @@ function ProjectTableRow(props) {
             <TableCell>{project.description}</TableCell>
             <TableCell>{project.manager}</TableCell>
             <TableCell>{project.open_tickets}</TableCell>
-            <TableCell>{project.created_on}</TableCell>
+            <TableCell>{date}</TableCell>
         </TableRow>
     )
 }

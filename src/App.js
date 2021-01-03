@@ -13,6 +13,7 @@ import {
 
 import projects from "./fakeAPI/projects";
 import tickets from "./fakeAPI/tickets";
+import getProjects from "./api_access/getProjects";
 import { ProjectDisplay } from './projects/projectViews';
 import { ProjectDetailsPage } from "./projects/projectDetails";
 import { TicketDetailsPage } from "./tickets/ticketDetails";
