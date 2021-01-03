@@ -39,6 +39,7 @@ import teams from "../fakeAPI/teams";
 
 // CSS Modules
 import styles from './ProjectTable.module.css'
+import {useTable} from "react-table";
 
 export { ProjectDisplay }
 
@@ -196,10 +197,104 @@ function ProjectTableReactQuery() {
         console.log('Something went wrong: '+error.message)
         return `Whoopsie: ${error.message}`
     }
-
     console.log(data.data)
-    return 'We did it!'
+
+    return (
+        <MyReactTable data={data.data}/>
+    )
+
 }
+
+function MyReactTable(props) {
+    const propsData = props.data
+
+    const columns = React.useMemo(
+        () => [
+            {
+                Header: 'title',
+                accessor: 'title', // accessor is the "key" in the data
+            },
+            {
+                Header: 'description',
+                accessor: 'description',
+            },
+            {
+                Header: 'manager',
+                accessor: 'manager',
+            },
+            {
+                Header: 'open_tickets',
+                accessor: 'open_tickets',
+            },
+            {
+                Header: 'created',
+                accessor: 'created',
+            },
+        ],
+        []
+    )
+
+    const data = React.useMemo(
+        () => propsData,
+        [propsData]
+    )
+
+    const tableInstance = useTable({ columns, data })
+
+    const {
+        getTableProps,
+        getTableBodyProps,
+        headerGroups,
+        rows,
+        prepareRow,
+    } = tableInstance
+
+    return (
+        // apply the table props
+        <table {...getTableProps()}>
+            <thead>
+            {// Loop over the header rows
+                headerGroups.map(headerGroup => (
+                    // Apply the header row props
+                    <tr {...headerGroup.getHeaderGroupProps()}>
+                        {// Loop over the headers in each row
+                            headerGroup.headers.map(column => (
+                                // Apply the header cell props
+                                <th {...column.getHeaderProps()}>
+                                    {// Render the header
+                                        column.render('Header')}
+                                </th>
+                            ))}
+                    </tr>
+                ))}
+            </thead>
+            {/* Apply the table body props */}
+            <tbody {...getTableBodyProps()}>
+            {// Loop over the table rows
+                rows.map(row => {
+                    // Prepare the row for display
+                    prepareRow(row)
+                    return (
+                        // Apply the row props
+                        <tr {...row.getRowProps()}>
+                            {// Loop over the rows cells
+                                row.cells.map(cell => {
+                                    // Apply the cell props
+                                    return (
+                                        <td {...cell.getCellProps()}>
+                                            {// Render the cell contents
+                                                cell.render('Cell')}
+                                        </td>
+                                    )
+                                })}
+                        </tr>
+                    )
+                })}
+            </tbody>
+        </table>
+    )
+}
+
 
 
 function ProjectTable(props) {
